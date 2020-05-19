@@ -1,0 +1,13 @@
+This will be the application that is used by BCL to onboard customers, manage sales, inventory as well as all administrative actions
+
+Domain entities -
+    customer
+    salesman
+    order
+    product
+    set
+
+Identified modules -
+    sales - contains customer, salesman and order and everything related to viewing and updating
+    product_set - contains all product, set information (Catalog)
+    admin - contains all super actions (Delete, Reports)
