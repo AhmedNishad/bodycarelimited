@@ -20,7 +20,7 @@ orderRouter.get('/:id', (req,res)=>{
         let order_aggregate = aggregate_by_single_root(order, "sets", "order")[0];
         console.log(order_aggregate)
         order_aggregate.sets = aggregate_by_single_root_ignore_fields(order_aggregate.sets, "products","set", 
-        ["customer_id", "customer_name", "salesman_id", "salesman_name", "sales_target", "customer_contact"]) 
+        ["customer_id", "customer_name", "salesman_id", "salesman_name", "sales_target", "customer_contact", "customer_email"]) 
         return res.json(order_aggregate);
     });
 })

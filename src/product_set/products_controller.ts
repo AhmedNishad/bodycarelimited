@@ -5,8 +5,9 @@ const productsRouter = express.Router();
 
 const DB = require('../db');
 
-import {get_all, get_by_id, post, put, remove} from './product_repository';
+import {get_all, get_by_id, post, put, remove, put_image_url_exec} from './product_repository';
 import { noneAreNull, noneAreUndefined } from '../util/util_func';
+import { file_upload } from '../util/file_upload';
 
 productsRouter.get('/:id', (req,res)=>{
     let {id} = req.params;
@@ -84,6 +85,19 @@ productsRouter.delete('/:id', (req,res)=>{
         
         return res.json({success: true});
     })
+})
+
+// File Uplaod
+productsRouter.post('/file/:id', file_upload.array('product', 1), async (req,res)=>{
+    console.log(req.files)
+    if(req.files == []){
+        return res.json({error: "Upload unsuccessful"})
+    }
+    console.log("Successfully uploaded")
+    // Update product image
+    let uploadedImageLocation = req.files[0].location;
+    await put_image_url_exec(uploadedImageLocation, req.params.id)
+    return res.json({success:true, url: uploadedImageLocation})
 })
 
 module.exports = productsRouter;

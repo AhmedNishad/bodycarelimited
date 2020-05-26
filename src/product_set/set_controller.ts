@@ -10,7 +10,7 @@ import { noneAreNull, noneAreUndefined,  aggregate_by_single_root} from '../util
 import { authorizeForRoles } from '../middleware';
 import { userRoles } from '../consts';
 
-setRouter.get('/:id', authorizeForRoles([userRoles.Strategy, userRoles.Salesman]), (req,res)=>{
+setRouter.get('/:id', (req,res)=>{
     let {id} = req.params;
 
     console.log(req.user)
@@ -23,7 +23,7 @@ setRouter.get('/:id', authorizeForRoles([userRoles.Strategy, userRoles.Salesman]
     });
 })
 
-setRouter.post('', authorizeForRoles([userRoles.Strategy]), async (req, res)=>{
+setRouter.post('', async (req, res)=>{
     let {set_name, set_description, set_category_id, products} = req.body;
 
     let notDefined = noneAreUndefined({set_name, set_description, set_category_id})
@@ -51,7 +51,7 @@ setRouter.post('', authorizeForRoles([userRoles.Strategy]), async (req, res)=>{
     }
 })
 
-setRouter.put('/:id', authorizeForRoles([userRoles.Strategy]), async (req, res)=>{
+setRouter.put('/:id', async (req, res)=>{
     // Update product
     let {set_name, set_description, set_category_id, products} = req.body;
     let set_id = req.params.id;
@@ -87,7 +87,7 @@ setRouter.get("", /* authorizeForRoles([userRoles.Strategy, userRoles.Salesman])
     
 })
 
-setRouter.delete('/:id', authorizeForRoles([userRoles.Strategy]), async (req,res)=>{
+setRouter.delete('/:id', async (req,res)=>{
     let setId = req.params.id;
     if(setId == undefined){
         return res.json({error:"ID missing from request"})

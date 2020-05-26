@@ -30,6 +30,59 @@ _set as s on s.set_id = os.set_id INNER JOIN product_set as ps on ps.set_id = s.
 product as p on p.product_id = ps.product_id INNER  JOIN customer as c on c.customer_id = o.customer_id
 INNER JOIN salesman as sa on sa.salesman_id = o.salesman_id WHERE o.order_id = ${id}`
 
+export const get_by_customer_id_sets_exec = async (id) => {
+    const conn = await DB.connection();
+
+    try{
+        const query = `SELECT *, c.customer_contact as order_customer_contact, 
+        c.customer_name as order_customer_name,
+        sa.salesman_name as order_salesman_name, c.customer_id as order_customer_id,
+        sa.sales_target as order_salesman_target, sa.salesman_id as order_salesman_id FROM 
+        _order as o INNER JOIN orderset as os on o.order_id = os.order_id INNER JOIN 
+        _set as s on s.set_id = os.set_id INNER JOIN product_set as ps on ps.set_id = s.set_id INNER JOIN
+        product as p on p.product_id = ps.product_id INNER  JOIN customer as c on c.customer_id = o.customer_id
+        INNER JOIN salesman as sa on sa.salesman_id = o.salesman_id WHERE o.customer_id = ?`;
+
+        let result = await DB.query(query, [id]) ;
+        return result
+    }catch(err){
+        throw err
+    }finally{
+        await conn.release()
+    }
+}
+
+export const get_by_salesman_id_sets_exec = async (id) => {
+    const conn = await DB.connection();
+
+    try{
+        const query = `SELECT *, c.customer_contact as order_customer_contact, 
+        c.customer_name as order_customer_name,
+        sa.salesman_name as order_salesman_name, c.customer_id as order_customer_id,
+        sa.sales_target as order_salesman_target, sa.salesman_id as order_salesman_id FROM 
+        _order as o INNER JOIN orderset as os on o.order_id = os.order_id INNER JOIN 
+        _set as s on s.set_id = os.set_id INNER JOIN product_set as ps on ps.set_id = s.set_id INNER JOIN
+        product as p on p.product_id = ps.product_id INNER  JOIN customer as c on c.customer_id = o.customer_id
+        INNER JOIN salesman as sa on sa.salesman_id = o.salesman_id WHERE o.salesman_id = ?`
+
+        let result = await DB.query(query, [id]) ;
+        return result
+    }catch(err){
+        throw err
+    }finally{
+        await conn.release()
+    }
+}
+
+export const get_by_salesman_id_sets = (id) => `SELECT *, c.customer_contact as order_customer_contact, 
+c.customer_name as order_customer_name,
+sa.salesman_name as order_salesman_name, c.customer_id as order_customer_id,
+sa.sales_target as order_salesman_target, sa.salesman_id as order_salesman_id FROM 
+_order as o INNER JOIN orderset as os on o.order_id = os.order_id INNER JOIN 
+_set as s on s.set_id = os.set_id INNER JOIN product_set as ps on ps.set_id = s.set_id INNER JOIN
+product as p on p.product_id = ps.product_id INNER  JOIN customer as c on c.customer_id = o.customer_id
+INNER JOIN salesman as sa on sa.salesman_id = o.salesman_id WHERE o.salesman_id = ${id}`
+
 export const post = (name, description, categoryId) => `INSERT INTO ${table}(set_name, set_description, category_id) values ("${name}", "${description}", ${categoryId})`
 
 export const post_sets = (name, description, categoryId, products) => {
@@ -102,6 +155,9 @@ export const post_sets_exec = async (date, status, salesmanId, customer_id, sets
         let productEntries = Object.entries(productQuantities)
         for(let [product_id, product] of productEntries){
             let newStock = product.stock - product.newQuantity;
+            if(newStock < 0){
+                throw new Error(`${product_id} has ${-1 * newStock} too many products in order`)
+            }
             await DB.query(`UPDATE product SET product_stock_level = ? WHERE product_id = ?`, [newStock, product_id])
         }
 
@@ -148,8 +204,10 @@ export const put_sets_exec = async (order_id, order_date, order_status, salesman
             if(!setAggregate[s.set_id]){
                 setAggregate[s.set_id] = s.set_quantity
             }
-            if(s.set_quantity == setAggregate[s.set_id])
+            if(s.set_quantity == setAggregate[s.set_id]){
+                setAggregate[s.set_id] = 0
                 return;
+            }
             setAggregate[s.set_id] = s.set_quantity - setAggregate[s.set_id]
         })
         console.log(setAggregate)
@@ -179,6 +237,8 @@ export const put_sets_exec = async (order_id, order_date, order_status, salesman
             if(newStock < 0){
                 throw new Error(`${product_id} has ${-1 * newStock} too many products in order`)
             }
+            if(newStock == 0)
+                continue
             await DB.query(`UPDATE product SET product_stock_level = ? WHERE product_id = ?`, [newStock, product_id])
         }
 

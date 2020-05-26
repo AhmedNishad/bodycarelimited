@@ -22,10 +22,11 @@ export const post_user_exec = async (user_name, user_email, user_password, user_
     try{
         await DB.query('Start Transaction');
 
-        await DB.query(`INSERT INTO _user(user_name, user_email, user_password, user_role) values ("${user_name}",
+        let result = await DB.query(`INSERT INTO _user(user_name, user_email, user_password, user_role) values ("${user_name}",
         "${user_email}", "${user_password}", "${user_role}")`);
 
         await DB.query("commit");
+        return result.insertId
     }catch(err){
         await DB.query('Rollback');
         throw err;

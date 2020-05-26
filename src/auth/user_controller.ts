@@ -1,5 +1,6 @@
 import { noneAreUndefined } from "../util/util_func";
 import { post_user_exec, get_user_exec} from './user_repository';
+import { post_sales_user_exec } from '../sales/salesman_repository'
 import { tokenLife, refreshTokenLife } from "../consts";
 
 export {}
@@ -18,6 +19,8 @@ let userTokens = {}
 userRouter.post("/create", async (req,res)=>{
     let {user_name, user_email, user_password, user_role} = req.body;
 
+    let isSalesman = user_role === 'salesman'
+
     let notDefined = noneAreUndefined({user_name, user_email, user_password, user_role})
 
     if(notDefined.length > 0){
@@ -30,7 +33,11 @@ userRouter.post("/create", async (req,res)=>{
     let password_hash = bcrypt.hashSync(user_password, salt);    
 
     try{
-        await post_user_exec(user_name, user_email, password_hash, user_role);
+        let user_id = await post_user_exec(user_name, user_email, password_hash, user_role);
+
+        if(isSalesman)
+            await post_sales_user_exec({salesman_name: user_name, user_id})
+
         return res.json({success: true})
     }catch(err){
         console.log(err)
