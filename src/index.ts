@@ -30,7 +30,7 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname + "/client/index.htm
 
 app.use('/users', userRouter)
 
-//app.use(checkToken);
+app.use(checkToken);
 
 app.use('/products', productsRouter);
 app.use('/sets', setController)

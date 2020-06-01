@@ -2,14 +2,17 @@
 export {}
 const express = require('express')
 const salesmanRouter = express.Router();
+const jwt = require('jsonwebtoken')
 
 const DB = require('../db');
 
 import {get_all, get_by_id, post, put, remove, removeExec} from './salesman_repository';
-import { get_by_salesman_id_sets_exec, get_by_salesman_id_sets} from './order_repository'
+import { get_by_salesman_id_sets_exec, get_by_salesman_id_sets, get_by_customer_id_sets_exec} from './order_repository'
 import { noneAreNull, noneAreUndefined,  aggregate_by_single_root, aggregate_by_single_root_ignore_fields} from '../util/util_func';
 import { authorizeForRoles } from '../middleware';
+import {get_customer_by_id, get_customers_for_salesman} from '../sales/customer_repository'
 import { userRoles } from '../consts';
+import { sendEmail } from '../util/email_service';
 
 salesmanRouter.get('/:id', (req,res)=>{
     let {id} = req.params;
@@ -20,6 +23,44 @@ salesmanRouter.get('/:id', (req,res)=>{
 
         return res.json(salesman);
     });
+})
+
+salesmanRouter.get('/:id/access', (req,res)=>{
+    // Replace with req.user.id
+    let {id} = req.params;
+    let customerId = req.query.customerId
+    DB.query( get_by_id(id), (err, salesman, fields)=>{
+        if(err)
+            return res.json({error: "Error salesman not found for id " + id})
+
+            DB.query( get_customer_by_id(customerId), (error, customer, fields)=>{
+                    if(error)
+                        return res.json({error: "Error customer not found for id " + customerId})
+                    let payload = {
+                        customer: customer[0],
+                        salesman: salesman[0]
+                    }
+                    let token = jwt.sign(payload, process.env.SECRET, {expiresIn: '9999 years'})
+                    // Mail token to user
+                    sendEmail(customer[0].customer_email, "Order Generated", `You may fulfil your order by going to 
+                    fulfil order section and entering the code ${token}`)
+                    return res.json({token});
+                }
+            );
+    })
+})
+
+salesmanRouter.get('/:id/customers', (req,res)=>{
+    let {id} = req.params;
+    console.log("access")
+    DB.query( get_by_id(id), async (err, salesman, fields)=>{
+        if(err)
+            return res.json({error: "Error salesman not found for id " + id})
+
+        let customers = await get_customers_for_salesman(id);
+        salesman.customers = customers;
+        return res.json({success: true, salesman: salesman[0], customers})
+    })
 })
 
 salesmanRouter.get('/0/orders/all', async (req,res)=>{
@@ -39,7 +80,6 @@ salesmanRouter.get('/0/orders/all', async (req,res)=>{
             }
             salesman.orders = order_aggregate;
         }
-        
 
         return res.json({salesmen});
     });

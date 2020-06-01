@@ -11,8 +11,23 @@ export const get_all = () => `SELECT * FROM ${table}`
 
 export const get_by_id = (id) => `SELECT * FROM ${table} WHERE ${key} = ${id}`
 
-export const post = ({customer_name, customer_contact, customer_email}) => `INSERT INTO ${table} (customer_name, customer_contact, customer_email) values ('${customer_name}', '${customer_contact}',
-'${customer_email}')`
+export const get_customer_by_id = (id) => `SELECT * FROM ${table} WHERE ${key} = ${id}`
+
+export const get_customers_for_salesman = async (salesmanId) => {
+    const conn = await DB.connection()
+    // Delete all of customers orders from orderset and update quantity
+    try{
+        let customers = await DB.query(`SELECT * FROM customer WHERE salesman_id = ?`, [salesmanId])
+        return customers;
+    }catch(err){
+        throw err;
+    }finally{
+        await conn.release()
+    }
+}
+
+export const post = ({customer_name, customer_contact, customer_email, salesman_id}) => `INSERT INTO ${table} (customer_name, customer_contact, customer_email, salesman_id) values ('${customer_name}', '${customer_contact}',
+'${customer_email}', '${salesman_id}')`
 
 export const put = ({customer_name, customer_contact, customer_email}, id) => `UPDATE ${table} SET customer_name = '${customer_name}', customer_contact = '${customer_contact}', customer_email = '${customer_email}' WHERE ${key} = ${id}`
 

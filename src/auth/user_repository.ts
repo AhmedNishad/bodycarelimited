@@ -15,6 +15,20 @@ export const get_user_exec = async (user_email) => {
     }
 }
 
+export const get_user_by_id_exec = async (user_id) => {
+
+    const conn = await DB.connection();
+
+    try{
+        const result = await DB.query(`SELECT * FROM _user WHERE user_id = "${user_id}"`)
+        return result
+    }catch(err){
+        throw err;
+    }finally{
+        await conn.release();
+    }
+}
+
 export const post_user_exec = async (user_name, user_email, user_password, user_role) => {
 
     const conn = await DB.connection();

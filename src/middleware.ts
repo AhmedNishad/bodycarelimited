@@ -13,20 +13,28 @@ export const checkToken = (req,res,next)=>{
     if(token == undefined || token.length < 8)
         return res.json({success:false, error: "Auth token not specified"})
 
-    if(token.startsWith('Bearer ')){
+    if(token.startsWith('Bearer')){
         token = token.slice(7, token.length)
     }
+
     if(token){
-        jwt.verify(token, process.env.SECRET, (err, decoded)=>{
-            if(err){
-                return res.json({success:false, error:"Invalid token"})
-            }else{
-                req.user = decoded;
-                next()
-            }
+        try{
+            jwt.verify(token, process.env.SECRET, (err, decoded)=>{
+                if(err){
+                    //console.log(token + " is invalid")
+                    console.log(err)
+                    return res.status(401).json({success:false, error:"Invalid token"})
+                }else{
+                    req.user = decoded;
+                    next()
+                }
         })
+        }catch(err){
+            console.log(err)
+            return res.status(401).json({success:false, error: "Token has expired"})
+        }
     }else{
-        return res.json({success:false, error: "Auth token not specified"})
+        return res.status(401).json({success:false, error: "Auth token not specified"})
     }
 }
 

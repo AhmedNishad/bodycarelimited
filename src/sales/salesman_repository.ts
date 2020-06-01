@@ -11,13 +11,26 @@ export const get_all = () => `SELECT * FROM ${table}`
 
 export const get_by_id = (id) => `SELECT * FROM ${table} WHERE ${key} = ${id}`
 
+export const get_salesman_by_user_id_exec = async (user_id) => {
+    const conn = await DB.connection()
+    // Delete all of customers orders from orderset and update quantity
+    try{
+        let result = await DB.query(`SELECT * FROM salesman WHERE user_id = ?`, [user_id])
+        return result[0]
+    }catch(err){
+        throw err;
+    }finally{
+        await conn.release()
+    }
+}
+
 export const post = ({salesman_name, sales_target}) => `INSERT INTO ${table} (salesman_name, sales_target) values ('${salesman_name}', '${sales_target}')`
 
 export const post_sales_user_exec = async ({salesman_name, user_id}) => {
     const conn = await DB.connection()
     // Delete all of customers orders from orderset and update quantity
     try{
-        await DB.query(`INSERT INTO salesman (salesman_name, user_id) values ('?', '?')`, [salesman_name, user_id])
+        await DB.query(`INSERT INTO salesman (salesman_name, user_id) values (?,?)`, [salesman_name, user_id])
     }catch(err){
         throw err;
     }finally{

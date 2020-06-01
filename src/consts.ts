@@ -5,5 +5,5 @@ export enum userRoles{
     Salesman = "salesman"
 }
 
-export const tokenLife = 900
-export const refreshTokenLife = 86400
+export const tokenLife = "10s"
+export const refreshTokenLife = "30d"

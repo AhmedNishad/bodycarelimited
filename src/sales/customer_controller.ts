@@ -2,6 +2,7 @@
 export {}
 const express = require('express')
 const customerRouter = express.Router();
+const jwt = require('jsonwebtoken')
 
 const DB = require('../db');
 
@@ -20,6 +21,19 @@ customerRouter.get('/:id', (req,res)=>{
 
         return res.json(customer);
     });
+})
+
+customerRouter.get('/orders/access', (req,res)=>{
+    let token = req.query.token;
+    console.log(token)
+    jwt.verify(token, process.env.SECRET, (err, decoded)=>{
+        if(err){
+            return res.json({success:false, error:"Invalid token"})
+        }else{
+            console.log(decoded)
+            return res.json({success: true, orderPayload: decoded})
+        }
+    })
 })
 
 customerRouter.get('/:id/orders', async (req,res)=>{
@@ -45,9 +59,9 @@ customerRouter.get('/:id/orders', async (req,res)=>{
 })
 
 customerRouter.post('', async (req, res)=>{
-    let {customer_name, customer_contact, customer_email} = req.body;
+    let {customer_name, customer_contact, customer_email, salesman_id} = req.body;
     
-    let notDefined = noneAreUndefined({customer_name, customer_contact, customer_email})
+    let notDefined = noneAreUndefined({customer_name, customer_contact, customer_email, salesman_id})
 
     if(notDefined.length > 0){
         return res.json({error: notDefined + " are missing from request body"})
@@ -55,9 +69,11 @@ customerRouter.post('', async (req, res)=>{
 
     try{
 
-        DB.query(post({customer_name, customer_contact, customer_email}), (err, customer, fields)=>{
-            if(err)
+        DB.query(post({customer_name, customer_contact, customer_email, salesman_id}), (err, customer, fields)=>{
+            if(err){
+                console.log(err)
                 return res.json({error: "Error posting customer"});
+            }
                 
             DB.query(get_by_id(customer.insertId), (error, insertedCustomer, fieldss)=>{
                 return res.json({success: true, customer: insertedCustomer[0]});

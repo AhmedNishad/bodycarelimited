@@ -8,7 +8,8 @@ const table = "_set";
 
 export const get_all = () => `SELECT * FROM ${table}`
 
-export const get_all_sets = () => `SELECT product.product_id, product.product_name, product.product_unit_price, product.product_stock_level,
+export const get_all_sets = () => `SELECT product.product_image_url ,product.product_id, product.product_name, 
+product.product_unit_price, product.product_stock_level,
 _set.set_id, _set.set_name, _set.set_description, product_set.product_quantity as product_set_quantity,
 category.category_name as set_category_name 
 FROM product, _set, product_set, category WHERE product.product_id = product_set.product_id and 
